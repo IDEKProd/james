@@ -6,8 +6,15 @@ local static = "static"
 local moving = true
 local movingLeft = false
 local movingRight = false
+local rounds = 1
+
+local function removeTopScore()
+	topScore.isVisible = false
+	clock = nil
+end
 
 local function startDrop()
+	print(rounds)
 	physics.removeBody(player)
 	physics.addBody(player, "dynamic")
 	moving = false
@@ -16,15 +23,17 @@ end
 local function onLocalCollision(self, event)
 	obj1 = event.self
 	obj2 = event.other
-	if obj2.myName == "catcher1" then
-		print("catcher1")
-		startDrop()
-	elseif obj2.myName == "catcher2" then
-		print("catcher2")
-		startDrop()
-	elseif obj2.myName == "catcher3" then
-		print("catcher3")
-		startDrop()
+	if event.phase == "began" then
+		if obj2.myName == "catcher1" then
+			print("catcher1")
+			startDrop()
+		elseif obj2.myName == "catcher2" then
+			print("catcher2")
+			startDrop()
+		end
+		if obj2.myName == "peg" then
+			pointsText.text = pointsText.text + 1
+		end
 	end
 end
 
@@ -47,16 +56,33 @@ local function gameLoop()
 		physics.removeBody(player)
 		physics.addBody(player, static)
 		player.rotation = 0
+		rounds = rounds + 1
 	end
 	if player:getLinearVelocity() == 0 then
-		player:setLinearVelocity(50, 20)
+		player:setLinearVelocity(math.random(-300, 300), 300)
+	end
+	if rounds > 3 then
+		rounds = 0
+		topScore.isVisible = true
+		topScore.text = "Your top score was "..pointsText.text
+		clock = timer.performWithDelay(5000, removeTopScore)
+		pointsText.text = 0
 	end
 end
 
 local function start()
+	--load a score thingies
+
+	topScore = display.newText("", display.contentCenterX, display.contentCenterY, native.systemFont, 75)
+	topScore.isVisible = false
+
+	pointsText = display.newText(0, display.contentCenterX, display.contentCenterY, native.systemFont, 750)
+	pointsText.alpha = 0.5
+
 	-- load a player
 
-	player = display.newRect(10, 80, 80, 80)
+	player = display.newImageRect("character.png", 150, 150)
+	player.y = 100
 	player.myName = "player"
 	physics.addBody(player, static)
 
@@ -67,38 +93,53 @@ local function start()
 	physics.addBody(wallRight, static)
 	--load some peg in
 
-	local peg1 = display.newRect(display.contentCenterX-350, display.contentCenterY-550, 20, 20)
+	--top line
+	local peg1 = display.newRect(display.contentCenterX-350, display.contentCenterY-550, 40, 40)
 	physics.addBody(peg1, static)
-	local peg2 = display.newRect(display.contentCenterX, display.contentCenterY-550, 20, 20)
+	peg1.myName = "peg"
+	local peg2 = display.newRect(display.contentCenterX, display.contentCenterY-550, 40, 40)
 	physics.addBody(peg2, static)
-	local peg3 = display.newRect( display.contentCenterX+350, display.contentCenterY-550, 20, 20)
+	peg2.myName = "peg"
+	local peg3 = display.newRect( display.contentCenterX+350, display.contentCenterY-550, 40, 40)
 	physics.addBody(peg3, static)
-	local peg4 = display.newRect(display.contentCenterX-200, display.contentCenterY-200, 20, 20)
+	peg3.myName = "peg"
+
+	-- middle top line
+
+	local peg4 = display.newRect(display.contentCenterX-200, display.contentCenterY-200, 40, 40)
 	physics.addBody(peg4, static)
-	local peg5 = display.newRect(display.contentCenterX+200, display.contentCenterY-200, 20, 20)
+	peg4.myName = "peg"
+	local peg5 = display.newRect(display.contentCenterX+200, display.contentCenterY-200, 40, 40)
 	physics.addBody(peg5, static)
-	local peg6 = display.newRect(display.contentCenterX-350, display.contentCenterY+200, 20, 20)
+	peg5.myName = "peg"
+	--middle bottom line
+
+	local peg6 = display.newRect(display.contentCenterX-350, display.contentCenterY+200, 40, 40)
 	physics.addBody(peg6, static)
-	local peg7 = display.newRect(display.contentCenterX, display.contentCenterY+200, 20, 20)
+	peg6.myName = "peg"
+	local peg7 = display.newRect(display.contentCenterX, display.contentCenterY+200, 40, 40)
 	physics.addBody(peg7, static)
-	local peg8 = display.newRect(display.contentCenterX+350, display.contentCenterY+200, 20, 20)
+	peg7.myName = "peg"
+	local peg8 = display.newRect(display.contentCenterX+350, display.contentCenterY+200, 40, 40)
 	physics.addBody(peg8, static)
-	local peg9 = display.newRect(display.contentCenterX-200, display.contentCenterY+550, 20, 20)
+	peg8.myName = "peg"
+
+	-- bottom line
+	local peg9 = display.newRect(display.contentCenterX-200, display.contentCenterY+550, 40, 40)
 	physics.addBody(peg9, static)
-	local peg10 = display.newRect( display.contentCenterX+200, display.contentCenterY+550, 20, 20)
+	peg9.myName = "peg"
+	local peg10 = display.newRect( display.contentCenterX+200, display.contentCenterY+550, 40, 40)
 	physics.addBody(peg10, static)
+	peg10.myName = "peg"
 
 	-- load some catchers in the bottom
 
-	local catcher1 = display.newRect(display.contentCenterX+350, display.contentCenterY*2, 200, 20)
+	local catcher1 = display.newRect(display.contentCenterX-200, display.contentCenterY*2-40, 150, 40)
 	catcher1.myName = "catcher1"
 	physics.addBody(catcher1, static, {isSensor = true})
-	local catcher2 = display.newRect( display.contentCenterX, display.contentCenterY*2, 200, 20)
+	local catcher2 = display.newRect( display.contentCenterX+200, display.contentCenterY*2-40, 150, 40)
 	catcher2.myName = "catcher2"
 	physics.addBody(catcher2, static, {isSensor = true})
-	local catcher3 = display.newRect( display.contentCenterX-350, display.contentCenterY*2, 200, 20)
-	catcher3.myName = "catcher3"
-	physics.addBody(catcher3, static, {isSensor = true})
 
 	player.collision = onLocalCollision
 	player:addEventListener("collision")
